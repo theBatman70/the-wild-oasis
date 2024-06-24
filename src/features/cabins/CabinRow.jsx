@@ -1,13 +1,11 @@
 import styled from "styled-components";
 
 import { formatCurrency } from "../../utils/helpers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCabinAPI } from "../../services/apiCabins";
-import toast from "react-hot-toast";
 import { useState } from "react";
 import CreateEditCabinForm from "./CreateEditCabinForm";
 import { HiDuplicate, HiTrash } from "react-icons/hi";
 import { useCreateCabin } from "./useCreateCabin";
+import { useDeleteCabin } from "./useDeleteCabin";
 
 const TableRow = styled.div`
   display: grid;
@@ -58,19 +56,9 @@ function CabinRow({ cabin }) {
     image,
   } = cabin;
 
-  const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
 
-  const { isLoading: isDeleting, mutate: del } = useMutation({
-    mutationFn: (id) => deleteCabinAPI(id),
-    onSuccess: () => {
-      toast.success("Cabin deleted successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const { deleteCabin, isDeleting } = useDeleteCabin();
 
   const { createCabin, isCreating } = useCreateCabin();
 
@@ -83,6 +71,9 @@ function CabinRow({ cabin }) {
       image,
       description: cabin.description,
     });
+  }
+  function handleDelete() {
+    deleteCabin(cabinId);
   }
 
   return (
@@ -100,7 +91,7 @@ function CabinRow({ cabin }) {
           <button onClick={() => setEditMode((show) => !show)}>
             {!editMode ? "Edit" : "Close"}
           </button>
-          <button onClick={() => del(cabinId)} disabled={isDeleting}>
+          <button onClick={handleDelete} disabled={isDeleting}>
             <HiTrash />
           </button>
         </div>
